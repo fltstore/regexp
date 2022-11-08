@@ -18,6 +18,9 @@ class RegexpApp extends StatelessWidget {
       ],
       builder: BotToastInit(),
       home: const RegexpPage(),
+      theme: ThemeData.light(),
+      darkTheme: ThemeData.dark(),
+      themeMode: ThemeMode.system,
     );
   }
 }
