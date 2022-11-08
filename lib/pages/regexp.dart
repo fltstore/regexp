@@ -1,6 +1,7 @@
 // ignore_for_file: avoid_unnecessary_containers
 
 import 'package:bot_toast/bot_toast.dart';
+import 'package:clipboard/clipboard.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -47,6 +48,11 @@ class _RegexpPageState extends State<RegexpPage> {
     bool find = regExp.hasMatch(text);
     String msg = '检验${find ? "成功" : "失败"}';
     BotToast.showText(text: msg);
+  }
+
+  handleTapCopy(RegExpRuleModel e) async {
+    await FlutterClipboard.copy(e.regular);
+    BotToast.showText(text: '复制到剪贴板成功');
   }
 
   @override
@@ -166,17 +172,21 @@ class _RegexpPageState extends State<RegexpPage> {
                                       width: 4.2,
                                     ),
                                   ),
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromRGBO(
-                                          142, 142, 147, 1),
-                                      borderRadius: BorderRadius.circular(4.2),
+                                  GestureDetector(
+                                    onTap: () => handleTapCopy(e),
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color.fromRGBO(
+                                            142, 142, 147, 1),
+                                        borderRadius:
+                                            BorderRadius.circular(4.2),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 4.2,
+                                      ),
+                                      child: const Text("点击复制"),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 4.2,
-                                    ),
-                                    child: const Text("点击复制"),
                                   ),
                                 ],
                               ),
