@@ -1,5 +1,6 @@
 // ignore_for_file: avoid_unnecessary_containers
 
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -19,13 +20,33 @@ class RegexpPage extends StatefulWidget {
 class _RegexpPageState extends State<RegexpPage> {
   ListRule _data = [];
   beforeHook() async {
+    asyncLoadRule();
+  }
+
+  asyncLoadRule() async {
     _data = await loadRule();
     setState(() {});
+    for (var element in _data) {
+      ruleController[element.title] = TextEditingController();
+    }
   }
+
+  Map<String, TextEditingController> ruleController = {};
 
   P<ListRule> loadRule() async {
     var data = await rootBundle.loadString('assets/ruler.json');
     return regExpRuleModelFromJson(data);
+  }
+
+  handleTapVerify(RegExpRuleModel e) {
+    TextEditingController? controller = ruleController[e.title];
+    if (controller == null) return;
+    String text = controller.text;
+    if (text.isEmpty) return;
+    RegExp regExp = RegExp(e.regular);
+    bool find = regExp.hasMatch(text);
+    String msg = '检验${find ? "成功" : "失败"}';
+    BotToast.showText(text: msg);
   }
 
   @override
@@ -61,6 +82,7 @@ class _RegexpPageState extends State<RegexpPage> {
                             width: double.infinity,
                             height: 32,
                             child: TextField(
+                              controller: ruleController[e.title],
                               style: const TextStyle(
                                 fontSize: 12.0,
                               ),
@@ -91,17 +113,23 @@ class _RegexpPageState extends State<RegexpPage> {
                                 mainAxisSize: MainAxisSize.min,
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  Container(
-                                    decoration: BoxDecoration(
-                                      color: const Color.fromRGBO(
-                                          103, 206, 103, 1),
-                                      borderRadius: BorderRadius.circular(4.2),
+                                  GestureDetector(
+                                    onTap: () {
+                                      handleTapVerify(e);
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color.fromRGBO(
+                                            103, 206, 103, 1),
+                                        borderRadius:
+                                            BorderRadius.circular(4.2),
+                                      ),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 6,
+                                        vertical: 4.2,
+                                      ),
+                                      child: const Text("点击验证"),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 4.2,
-                                    ),
-                                    child: const Text("点击验证"),
                                   ),
                                   const SizedBox(
                                     width: 4.2,

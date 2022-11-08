@@ -1,3 +1,4 @@
+import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:regexp/pages/regexp.dart';
 
@@ -10,8 +11,13 @@ class RegexpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: RegexpPage(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      navigatorObservers: [
+        BotToastNavigatorObserver(),
+      ],
+      builder: BotToastInit(),
+      home: const RegexpPage(),
     );
   }
 }
