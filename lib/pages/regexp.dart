@@ -105,6 +105,7 @@ class _RegexpPageState extends State<RegexpPage> {
                               textAlignVertical: TextAlignVertical.center,
                               textAlign: TextAlign.left,
                               decoration: InputDecoration(
+                                hintText: e.placeholder,
                                 suffixIcon: Builder(builder: (context) {
                                   bool needClear =
                                       ruleInstanceNeedClearMap[e.title] ??
