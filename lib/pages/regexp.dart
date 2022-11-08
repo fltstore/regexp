@@ -90,6 +90,18 @@ class _RegexpPageState extends State<RegexpPage> {
                               textAlignVertical: TextAlignVertical.center,
                               textAlign: TextAlign.left,
                               decoration: InputDecoration(
+                                suffixIcon: MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      ruleController[e.title]?.clear();
+                                    },
+                                    child: const Icon(
+                                      CupertinoIcons.clear,
+                                      size: 14,
+                                    ),
+                                  ),
+                                ),
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
                                 ),
