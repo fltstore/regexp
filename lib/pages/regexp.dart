@@ -1,5 +1,3 @@
-// ignore_for_file: avoid_unnecessary_containers
-
 import 'package:bot_toast/bot_toast.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:flutter/cupertino.dart';
@@ -42,13 +40,23 @@ class _RegexpPageState extends State<RegexpPage> {
 
   handleTapVerify(RegExpRuleModel e) {
     TextEditingController? controller = ruleController[e.title];
-    if (controller == null) return;
+    if (controller == null) {
+      sayFillContent();
+      return;
+    }
     String text = controller.text;
-    if (text.isEmpty) return;
+    if (text.isEmpty) {
+      sayFillContent();
+      return;
+    }
     RegExp regExp = RegExp(e.regular);
     bool find = regExp.hasMatch(text);
     String msg = '检验${find ? "成功" : "失败"}';
     BotToast.showText(text: msg);
+  }
+
+  sayFillContent() {
+    BotToast.showText(text: '请输入内容');
   }
 
   handleTapCopy(RegExpRuleModel e) async {
