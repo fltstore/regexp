@@ -33,6 +33,7 @@ class _RegexpPageState extends State<RegexpPage> {
   }
 
   Map<String, TextEditingController> ruleController = {};
+  Map<String, bool> ruleInstanceNeedClearMap = {};
 
   P<ListRule> loadRule() async {
     var data = await rootBundle.loadString('assets/ruler.json');
@@ -96,18 +97,29 @@ class _RegexpPageState extends State<RegexpPage> {
                               textAlignVertical: TextAlignVertical.center,
                               textAlign: TextAlign.left,
                               decoration: InputDecoration(
-                                suffixIcon: MouseRegion(
-                                  cursor: SystemMouseCursors.click,
-                                  child: GestureDetector(
-                                    onTap: () {
-                                      ruleController[e.title]?.clear();
-                                    },
-                                    child: const Icon(
-                                      CupertinoIcons.clear,
-                                      size: 14,
+                                suffixIcon: Builder(builder: (context) {
+                                  bool needClear =
+                                      ruleInstanceNeedClearMap[e.title] ??
+                                          false;
+                                  if (!needClear) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  return MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        ruleController[e.title]?.clear();
+                                        ruleInstanceNeedClearMap[e.title] =
+                                            false;
+                                        setState(() {});
+                                      },
+                                      child: const Icon(
+                                        CupertinoIcons.clear,
+                                        size: 14,
+                                      ),
                                     ),
-                                  ),
-                                ),
+                                  );
+                                }),
                                 contentPadding: const EdgeInsets.symmetric(
                                   horizontal: 12.0,
                                 ),
@@ -116,6 +128,11 @@ class _RegexpPageState extends State<RegexpPage> {
                                   borderRadius: BorderRadius.circular(4.2),
                                 ),
                               ),
+                              onChanged: (value) {
+                                ruleInstanceNeedClearMap[e.title] =
+                                    value.isNotEmpty;
+                                setState(() {});
+                              },
                             ),
                           ),
                           const SizedBox(
