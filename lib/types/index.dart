@@ -1,0 +1,4 @@
+enum GenCodeType {
+  js,
+  dart,
+}

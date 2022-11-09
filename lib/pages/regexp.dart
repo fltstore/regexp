@@ -4,7 +4,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:regexp/models/rule.dart';
+import 'package:regexp/types/index.dart';
 
+import '../extensions/index.dart';
 import '../types/alias.dart';
 
 typedef ListRule = L<RegExpRuleModel>;
@@ -18,6 +20,8 @@ class RegexpPage extends StatefulWidget {
 
 class _RegexpPageState extends State<RegexpPage> {
   ListRule _data = [];
+  GenCodeType genCodeType = GenCodeType.js;
+  bool showOptions = false;
   beforeHook() async {
     asyncLoadRule();
   }
@@ -59,8 +63,21 @@ class _RegexpPageState extends State<RegexpPage> {
     BotToast.showText(text: '请输入内容');
   }
 
+  String easyGenCodeWithString(String input, GenCodeType codeType) {
+    switch (codeType) {
+      case GenCodeType.js:
+        return '/$input/';
+      case GenCodeType.dart:
+        return 'RegExp(r"$input")';
+      default:
+        return input;
+    }
+  }
+
   handleTapCopy(RegExpRuleModel e) async {
-    await FlutterClipboard.copy(e.regular);
+    String result = e.regular;
+    String data = easyGenCodeWithString(result, genCodeType);
+    await FlutterClipboard.copy(data);
     BotToast.showText(text: '复制到剪贴板成功');
   }
 
@@ -73,6 +90,86 @@ class _RegexpPageState extends State<RegexpPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(42),
+        child: SizedBox(
+          width: double.infinity,
+          height: double.infinity,
+          child: Row(
+            mainAxisAlignment: !showOptions
+                ? MainAxisAlignment.end
+                : MainAxisAlignment.spaceBetween,
+            children: [
+              if (showOptions)
+                Expanded(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text("复制到剪贴板格式"),
+                      const SizedBox(width: 6.0),
+                      Row(
+                        children: GenCodeType.values
+                            .map(
+                              (e) => Row(
+                                children: [
+                                  const SizedBox(width: 4.2),
+                                  MouseRegion(
+                                    cursor: SystemMouseCursors.click,
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        genCodeType = e;
+                                        setState(() {});
+                                      },
+                                      child: Builder(builder: (context) {
+                                        var isCurr = genCodeType == e;
+                                        return Container(
+                                          decoration: BoxDecoration(
+                                            color: isCurr
+                                                ? Colors.blue
+                                                : Colors.black,
+                                            borderRadius:
+                                                BorderRadius.circular(4.2),
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 16,
+                                            vertical: 1.2,
+                                          ),
+                                          child: Text(
+                                            e.name.capitalizeFirstLetter(),
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              color: isCurr
+                                                  ? Colors.white
+                                                  : Colors.blue,
+                                            ),
+                                          ),
+                                        );
+                                      }),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            )
+                            .toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              IconButton(
+                onPressed: () {
+                  showOptions = !showOptions;
+                  setState(() {});
+                },
+                icon: const Icon(
+                  Icons.format_list_bulleted,
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
+          ),
+        ),
+      ),
       body: CupertinoScrollbar(
         child: SingleChildScrollView(
           child: Padding(
@@ -161,23 +258,33 @@ class _RegexpPageState extends State<RegexpPage> {
                                     onTap: () {
                                       handleTapVerify(e);
                                     },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: const Color.fromRGBO(
-                                            103, 206, 103, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(4.2),
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromRGBO(
+                                              103, 206, 103, 1),
+                                          borderRadius:
+                                              BorderRadius.circular(4.2),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 4.2,
+                                        ),
+                                        child: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.fingerprint,
+                                              size: 18,
+                                              color: Colors.white,
+                                            ),
+                                            Text("点击验证"),
+                                          ],
+                                        ),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4.2,
-                                      ),
-                                      child: const Text("点击验证"),
                                     ),
                                   ),
-                                  const SizedBox(
-                                    width: 4.2,
-                                  ),
+                                  const SizedBox(width: 12),
                                   Container(
                                     decoration: BoxDecoration(
                                       color:
@@ -193,25 +300,33 @@ class _RegexpPageState extends State<RegexpPage> {
                                       overflow: TextOverflow.ellipsis,
                                     ),
                                   ),
-                                  Container(
-                                    child: const SizedBox(
-                                      width: 4.2,
-                                    ),
-                                  ),
+                                  const SizedBox(width: 6.0),
                                   GestureDetector(
                                     onTap: () => handleTapCopy(e),
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: const Color.fromRGBO(
-                                            142, 142, 147, 1),
-                                        borderRadius:
-                                            BorderRadius.circular(4.2),
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: const Color.fromRGBO(
+                                              142, 142, 147, 1),
+                                          borderRadius:
+                                              BorderRadius.circular(4.2),
+                                        ),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 4.2,
+                                        ),
+                                        child: Row(
+                                          children: const [
+                                            Icon(
+                                              Icons.content_copy_sharp,
+                                              size: 14,
+                                              color: Colors.white,
+                                            ),
+                                            Text("点击复制"),
+                                          ],
+                                        ),
                                       ),
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 4.2,
-                                      ),
-                                      child: const Text("点击复制"),
                                     ),
                                   ),
                                 ],
