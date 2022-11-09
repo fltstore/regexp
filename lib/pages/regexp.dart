@@ -236,7 +236,7 @@ class _RegexpPageState extends State<RegexpPage> {
                     mainAxisSize: MainAxisSize.min,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("复制到剪贴板格式"),
+                      const Text("剪贴板格式"),
                       const SizedBox(width: 6.0),
                       Row(
                         children: GenCodeType.values
