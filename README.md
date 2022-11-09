@@ -6,8 +6,6 @@
 <img width="120" src="https://s2.loli.net/2022/11/09/X5FnWqOygbwMG1k.png" />
 </a>
 
-# fun
+云端正则来自: https://github.com/any86/any-rule
 
-- 支持格式化为 `js/dart` 复制到剪贴板
-
-![image.png](https://s2.loli.net/2022/11/09/cWLN2P8teZy5BRQ.png)
+![image.png](https://s2.loli.net/2022/11/09/QklI3JOgRN4F7Xs.png)
