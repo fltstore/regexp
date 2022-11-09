@@ -33,6 +33,12 @@ class _RegexpPageState extends State<RegexpPage> {
   ListRule _assetsData = [];
   ListRule _remoteData = [];
 
+  ScrollController scrollController = ScrollController();
+
+  /// [0]=> 本地
+  /// [1]=> 云端
+  List<double> scrollCacheDict = [0, 0];
+
   ListRule get data {
     if (_menuType == KMenuType.local) {
       return _assetsData;
@@ -48,6 +54,7 @@ class _RegexpPageState extends State<RegexpPage> {
   set menuType(KMenuType type) {
     _menuType = type;
     setState(() {});
+    if (_remoteData.isNotEmpty) saveAndRestoreScroll(type);
     if (_menuType == KMenuType.remote && _remoteData.isEmpty) {
       isLoading = true;
       setState(() {});
@@ -55,6 +62,24 @@ class _RegexpPageState extends State<RegexpPage> {
     } else {
       bindRuleController(type);
     }
+  }
+
+  /// 先决条件: 远程数据已经加载完毕
+  saveAndRestoreScroll(KMenuType targetType) {
+    /// 备份
+    int backIndex = targetType == KMenuType.local ? 1 : 0;
+    double offset = scrollController.offset;
+    scrollCacheDict[backIndex] = offset;
+    backIndex = backIndex == 0 ? 1 : 0;
+
+    /// 还原
+    double backOffset = scrollCacheDict[backIndex];
+    if (backOffset <= 42) return;
+    scrollController.animateTo(
+      backOffset,
+      duration: const Duration(milliseconds: 420),
+      curve: Curves.ease,
+    );
   }
 
   bindRuleController(KMenuType type, {bool beforeClear = true}) {
@@ -333,23 +358,25 @@ class _RegexpPageState extends State<RegexpPage> {
           ),
         ),
       ),
-      body: CupertinoScrollbar(
-        child: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 24.0,
+      body: Builder(builder: (context) {
+        if (menuType == KMenuType.remote && isLoading) {
+          return SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: const Center(
+              child: CircularProgressIndicator(),
             ),
-            child: Builder(builder: (context) {
-              if (menuType == KMenuType.remote && isLoading) {
-                return SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  height: MediaQuery.of(context).size.height,
-                  child: const Center(
-                    child: CircularProgressIndicator(),
-                  ),
-                );
-              }
-              return Column(
+          );
+        }
+        return CupertinoScrollbar(
+          controller: scrollController,
+          child: SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+              ),
+              child: Column(
                 children: data
                     .map(
                       (e) => Padding(
@@ -514,11 +541,11 @@ class _RegexpPageState extends State<RegexpPage> {
                       ),
                     )
                     .toList(),
-              );
-            }),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 }
