@@ -32,18 +32,36 @@ class _RegexpPageState extends State<RegexpPage> {
   bool isLoading = false;
   ListRule _assetsData = [];
   ListRule _remoteData = [];
+  String searchText = "";
+
+  /// 没有搜索出结果
+  /// 1. 搜索文本不能空
+  /// 2. 数据不能为空
+  bool get notFindResult {
+    return searchText.isNotEmpty && data.isEmpty;
+  }
 
   ScrollController scrollController = ScrollController();
+
+  TextEditingController searchNameController = TextEditingController();
+
+  handleSearchName() {
+    String text = searchNameController.text;
+    searchText = text;
+    setState(() {});
+  }
 
   /// [0]=> 本地
   /// [1]=> 云端
   List<double> scrollCacheDict = [0, 0];
 
   ListRule get data {
-    if (_menuType == KMenuType.local) {
-      return _assetsData;
-    }
-    return _remoteData;
+    ListRule reData = _menuType == KMenuType.local ? _assetsData : _remoteData;
+    return reData.where((element) {
+      String title = element.title;
+      bool bNext = title.contains(searchText);
+      return bNext;
+    }).toList();
   }
 
   GenCodeType genCodeType = GenCodeType.js;
@@ -66,6 +84,8 @@ class _RegexpPageState extends State<RegexpPage> {
 
   /// 先决条件: 远程数据已经加载完毕
   saveAndRestoreScroll(KMenuType targetType) {
+    if (searchText.isNotEmpty) return;
+
     /// 备份
     int backIndex = targetType == KMenuType.local ? 1 : 0;
     double offset = scrollController.offset;
@@ -109,6 +129,10 @@ class _RegexpPageState extends State<RegexpPage> {
 
   beforeHook() async {
     asyncLoadMemRule();
+  }
+
+  afterHook() async {
+    searchNameController.dispose();
   }
 
   asyncLoadRemoteRule() async {
@@ -236,10 +260,22 @@ class _RegexpPageState extends State<RegexpPage> {
     return result;
   }
 
+  handleSearchNameEnter(String value) {
+    searchText = value;
+    scrollCacheDict = [0, 0];
+    setState(() {});
+  }
+
   @override
   void initState() {
     super.initState();
     beforeHook();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    afterHook();
   }
 
   @override
@@ -258,55 +294,109 @@ class _RegexpPageState extends State<RegexpPage> {
               if (showOptions)
                 Expanded(
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Text("剪贴板格式"),
-                      const SizedBox(width: 6.0),
+                      const SizedBox(width: 12),
                       Row(
-                        children: GenCodeType.values
-                            .map(
-                              (e) => Row(
-                                children: [
-                                  const SizedBox(width: 4.2),
-                                  MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        genCodeType = e;
-                                        setState(() {});
-                                      },
-                                      child: Builder(builder: (context) {
-                                        var isCurr = genCodeType == e;
-                                        return Container(
-                                          decoration: BoxDecoration(
-                                            color: isCurr
-                                                ? Colors.blue
-                                                : Colors.black,
-                                            borderRadius:
-                                                BorderRadius.circular(4.2),
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 1.2,
-                                          ),
-                                          child: Text(
-                                            e.name.capitalizeFirstLetter(),
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              color: isCurr
-                                                  ? Colors.white
-                                                  : Colors.blue,
-                                            ),
-                                          ),
-                                        );
-                                      }),
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Text("剪贴板格式"),
+                          const SizedBox(width: 6.0),
+                          Row(
+                            children: GenCodeType.values
+                                .map(
+                                  (e) => Row(
+                                    children: [
+                                      const SizedBox(width: 4.2),
+                                      MouseRegion(
+                                        cursor: SystemMouseCursors.click,
+                                        child: GestureDetector(
+                                          onTap: () {
+                                            genCodeType = e;
+                                            setState(() {});
+                                          },
+                                          child: Builder(builder: (context) {
+                                            var isCurr = genCodeType == e;
+                                            return Container(
+                                              decoration: BoxDecoration(
+                                                color: isCurr
+                                                    ? Colors.blue
+                                                    : Colors.black,
+                                                borderRadius:
+                                                    BorderRadius.circular(4.2),
+                                              ),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 16,
+                                                vertical: 1.2,
+                                              ),
+                                              child: Text(
+                                                e.name.capitalizeFirstLetter(),
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  color: isCurr
+                                                      ? Colors.white
+                                                      : Colors.blue,
+                                                ),
+                                              ),
+                                            );
+                                          }),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                                .toList(),
+                          ),
+                        ],
+                      ),
+                      Expanded(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12.0,
+                            vertical: 6.0,
+                          ),
+                          child: TextField(
+                            controller: searchNameController,
+                            onChanged: handleSearchNameEnter,
+                            style: const TextStyle(
+                              fontSize: 12.0,
+                            ),
+                            maxLines: 1,
+                            textAlignVertical: TextAlignVertical.center,
+                            textAlign: TextAlign.left,
+                            decoration: InputDecoration(
+                              suffixIcon: Builder(builder: (context) {
+                                bool needClear = searchText.isNotEmpty;
+                                if (!needClear) {
+                                  return const SizedBox.shrink();
+                                }
+                                return MouseRegion(
+                                  cursor: SystemMouseCursors.click,
+                                  child: GestureDetector(
+                                    onTap: () {
+                                      searchText = "";
+                                      searchNameController.clear();
+                                      setState(() {});
+                                    },
+                                    child: const Icon(
+                                      CupertinoIcons.clear,
+                                      size: 14,
                                     ),
                                   ),
-                                ],
+                                );
+                              }),
+                              hintText: '通过名称来搜索正则',
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
                               ),
-                            )
-                            .toList(),
+                              filled: true,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(4.2),
+                              ),
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -365,6 +455,20 @@ class _RegexpPageState extends State<RegexpPage> {
             height: MediaQuery.of(context).size.height,
             child: const Center(
               child: CircularProgressIndicator(),
+            ),
+          );
+        }
+        if (notFindResult) {
+          return SizedBox(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            child: const Center(
+              child: Text(
+                "无搜索结果",
+                style: TextStyle(
+                  fontSize: 24,
+                ),
+              ),
             ),
           );
         }
