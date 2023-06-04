@@ -11,6 +11,7 @@ import 'package:regexp/types/index.dart';
 import '../extensions/index.dart';
 import '../types/alias.dart';
 
+// TODO: add github url
 const kRuleRemoteUrl =
     'https://gitee.com/mirrors/any-rule/raw/master/packages/www/src/RULES.js';
 
